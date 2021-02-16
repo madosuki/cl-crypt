@@ -539,23 +539,29 @@
     (multiple-value-setq(right left) (perm-op right left 4 #X0f0f0f0f))
     (values left right)))
 
-(defun crypt(PWD &optional (salt "AA"))
+(defun crypt(pwd &optional (salt "AA"))
   "Password encrypion function.
 PWD is the user's typed password.
 SALT is a two character string chosen from the set [a-zA-Z0-9./] used to
 perturb the algorithm in one of 4096 different ways.
 Returns the 13 character encrypted password."
-  (declare (type string salt pwd))
+  (declare (type string salt))
   (assert (= 2 (length salt)))
   (let ((buffer (make-string 13)))
     (setf (subseq buffer 0 2) salt)
     (let ((e0 (aref +con-salt+ (char-code (aref salt 0))))
           (e1 (lshift (aref +con-salt+ (char-code (aref salt 1))) 4))
           (key (make-array  8 :element-type '(unsigned-byte 8)
-                            :initial-element 0)))
+                              :initial-element 0))
+          )
       (declare (type (unsigned-byte 32) e0 e1))
-      (dotimes(i (min (length key) (length pwd)))
-        (setf (aref key i) (lshift (char-code (char pwd i)) 1)))
+      (dotimes (i (min (length key) (length pwd)))
+        (setf (aref key i)
+              (let ((lshifted (lshift (aref pwd i) 1)))
+                (if (> lshifted 255)
+                    (- lshifted 255)
+                    lshifted)))
+        )
       (multiple-value-bind(left right) (body (des-set-key key) e0 e1)
         (let ((b (make-array  9 :element-type '(unsigned-byte 8))))
           (word-to-4-octets left b 0)
