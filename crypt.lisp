@@ -546,7 +546,7 @@ SALT is a two character string chosen from the set [a-zA-Z0-9./] used to
 perturb the algorithm in one of 4096 different ways.
 Returns the 13 character encrypted password."
   (declare (type string salt)
-           (type (vector (unsigned-byte 8)) pwd))
+           (type vector pwd))
   (assert (= 2 (length salt)))
   (let ((buffer (make-string 13)))
     (setf (subseq buffer 0 2) salt)
